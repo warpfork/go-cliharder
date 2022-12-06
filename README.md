@@ -1,3 +1,8 @@
+go-cliharder
+============
+
+It's a CLI library.
+
 
 
 Another CLI lib?!
@@ -10,6 +15,16 @@ Can't say I want Another Thing to maintain.
 
 Nonetheless, here's some features that I couldn't find anywhere else, or, couldn't find all together in one place:
 
+- The basics: `--longopts`, short `-asdf -a -s -d -f` opts, `--value=opts`, etc.
+- Controllable exit codes and output routing.
+- GOOD ERROR MESSAGES.
+- Good auto-generated usage docs.
+- Position-independent flags.  (E.g., most of the time, `foo bar -v` and `foo -v bar` mean the same thing.)
+- Subcommands.
+- Ergonomic extraction of the parsed values.  And more than one option for this.
+
+And considered in some other libraries:
+
 - Controllable exit codes and output routing:
 	- I introduced this myself in `jahwer/mow.cli`!  See github.com/jawher/mow.cli/pulls/128 .
 	- This _kinda_ exists in `urfave/cli`... but controlling the exit code is callback-based and a bit weird and honestly has been a source of bugs in about half the applications I've seen developers try to do it in.
@@ -17,7 +32,11 @@ Nonetheless, here's some features that I couldn't find anywhere else, or, couldn
 - GOOD ERROR MESSAGES.
 	- `mow.cli` really struggles with this.  See github.com/jawher/mow.cli/issues/84 (among others).  The flexibility of the library's parser means producing a good error message isn't just a missing feature, it's nearly impossible by design.  (It's getting its extremely flexibility because it's trying to pattern-match by more or less brute force, including liberal backtracking... which means if it has to explain what it tried, it would have a _lot_ of explaining to do.  Too much for a human to read, and find any terse point in!)
 - Good auto-generated usage.
-	- `urfave/cli` really tried hard with this.  But I don't think it did a super great job.  The generated usage... feels... weird.  The API doesn't guide you to write good usage.  And you still end up having to write most of the most-important parts (the tl;dr usage and the essential flag examples at the top of the usage) yourself!
+	- `urfave/cli` really tried hard with this.  But I don't think the outcome satisfies me.
+		- The API doesn't guide you to write good usage.
+		- You still end up having to write most of the most-important parts (the tl;dr usage and the essential flag examples at the top of the usage) yourself!
+		- The spacing is just honestly weird.
+		- I think most applications that care about good help text are going to write custom templates anyway.  And at that point.. what's the point?
 	- `jahwer/mow.cli` is outstandingly good at this.  I hope we can match it!  Parsing the example usage as a spec is a brilliant idea that makes sure it's load-bearing; really good.
 - Position-independent flags.  Most of the time, `foo bar -v` and `foo -v bar` mean the same thing.
 	- `urfave/cli` doesn't do this at all.  Bugs the heck out of me.
@@ -29,8 +48,16 @@ Nonetheless, here's some features that I couldn't find anywhere else, or, couldn
 	- Getters like `parsedArgs.GetLongOpt("foo")` are a good option, but shouldn't be the only one -- this approach is flexible, but relies on magic constant alignment, so it's a bit fragile to maintain.
 	- Systems where you bind a value at the time of constructing the CLI model are quite good.  We'll do that in go-cliharder, for sure.
 	- Systems where you have to write a struct and use tags to line things up... can look nice, and are a neat option to have.  But absolutely shouldn't be the _only_ option, because it means programmatically generating a model is impossible, and that's silly.
-- Every other little thing.
-	- e.g. dealing with dangling positional args in `urfave/cli` just.. I don't know.  It doesn't feel right.
+
+
+
+Status
+------
+
+Not even early alpha.  More of a dream.  A shamble of code that I've pushed.
+
+If you want to run with it, please do.  It's "free" as in "free puppy".
+
 
 
 How does go-cliharder get good error messages?
@@ -100,6 +127,7 @@ go-cliharder will produce a synopsis sorta like that, with multiple distinct ent
 when you use the MultipleChoice feature.
 
 
+
 Other Insights into The Guts
 ----------------------------
 
@@ -122,11 +150,11 @@ We support all sorts of weird (and not-so-weird) stuff with this:
 
 - You want piled-up short opts, like "-aux", to be the same as "-a -u -x"?  Yep.  So it is.
 - You want long opts like `--foo=bar`?  Fine.
-- You want multiple short opts, like "-vvv", to be distinct from "-v"?  You got it.
+- You want multiple short opts, like "-vvv", to be distinct from "-v"?  You got it.  (We'll count up the occurrences and let you know.)
 - You want multiple long opts to let you accumulate a list, so `--foo=bar --foo=baz` produces `["bar", "baz"]`?  Sure thing.  Supported.
 - You want `foo -- --bar` to parse as two positional arguments, not a long opt?  Yep.  We did that.
 - If you want to have an argument actually in the _middle_ of subcommand tree...
-	- Okay, not supported _yet_, but we probably will.
+	- Okay, "wildcard subcommands" are not supported _yet_, but we probably will.
 
 There's a very short list of things we don't support:
 
@@ -136,4 +164,16 @@ There's a very short list of things we don't support:
 	- I don't think you should ever want to do this.  It would surprise almost any user.
 - You can't differentiate `foo -v bar` from `foo bar -v`.  Again, we *really* don't preserve order.
 	- I'd still argue that you simply shouldn't want to do this.  It will surprise most users.
-- If you're really bonkers and want to do any of these things, but you also want what go-cliharder does most of the time, then the best thing I recommend you is to just look at the raw args array again a second time after we've done the first round of processing for you.  Then anything is possible.
+- If you're really enthusiastic about any of these things, and really want to do them, but you also want what go-cliharder does most of the time, then the best thing I recommend you is to just look at the raw args array again a second time after we've done the first round of processing for you.  That works fine; and then anything is possible.
+
+
+
+License
+-------
+
+This is open-source stuff.  Your choice of Apache-2 or MIT.  Literally:
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+
+There are also some snippets of code which derive from pure MIT sources (not Apache2),
+so that limitation is probably overriding.
