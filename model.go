@@ -9,6 +9,8 @@ import (
 
 // TODO: Everything below is a sketch, so far.
 
+// TODO: Value-binding structures aren't here.  There should be some for each `*ParamSpec` type.
+
 type Application struct {
 	Context context.Context // Just carried through, for your use if necessary.
 	Stdout  io.Writer
@@ -28,10 +30,23 @@ type Command struct {
 	WildSubcommand func(name string) *Command // Lets you do things like `appname subcommand1 wildcardvalue subcommand2`, where "wildcardvalue" isn't known in advance.
 }
 
-type Opt struct {
+type PositionalParamSpec struct {
+	Name             string
+	ValueTransformer func(string) (interface{}, error)
+
+	// Note that whether something is optional isn't described here:
+	//  instead, that's handled in the spec string,
+	//   because it may also involve some nuanced relationship to other params.
+}
+
+type KeywordParamSpec struct {
 	PrimaryLongname  string
 	PrimaryShortname string
 	AliasLongnames   []string
 	AliasShortnames  []string
 	ValueTransformer func(string) (interface{}, error)
+
+	// Note that whether something is optional isn't described here:
+	//  instead, that's handled in the spec string,
+	//   because it may also involve some nuanced relationship to other params.
 }
